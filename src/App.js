@@ -1,15 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Hero from './components/Hero';
 import StorySection from './components/StorySection';
 import ProductsSection from './components/ProductsSection';
 import Footer from './components/Footer';
 import EmailPopup from './components/EmailPopup';
+import AdminPanel from './components/AdminPanel';
+import Login from './components/Login';
+import { authService, supabase } from './supabase';
 import './App.css';
 
 function App() {
   const [showEmailPopup, setShowEmailPopup] = useState(false);
   const [hasEnteredEmail, setHasEnteredEmail] = useState(false);
+  const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(false);
 
   useEffect(() => {
     // Check if user has already entered email
@@ -23,34 +28,89 @@ function App() {
     } else {
       setHasEnteredEmail(true);
     }
+
+    // Check if admin is already authenticated
+    const checkAdminAuth = async () => {
+      const isAuthenticated = await authService.isAuthenticated();
+      setIsAdminLoggedIn(isAuthenticated);
+    };
+    
+    checkAdminAuth();
+
+    // Handle OAuth callback
+    const handleOAuthCallback = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        setIsAdminLoggedIn(true);
+      }
+    };
+
+    // Listen for auth state changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_IN' && session) {
+        setIsAdminLoggedIn(true);
+      } else if (event === 'SIGNED_OUT') {
+        setIsAdminLoggedIn(false);
+      }
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
   const handleEmailSubmit = (email) => {
     setShowEmailPopup(false);
     setHasEnteredEmail(true);
     console.log('Email submitted:', email);
-    // Here you can add logic to send the email to your backend
+    
+    // Email is now stored in Supabase via EmailPopup component
+    // We only need to store the user's email preference locally
+    localStorage.setItem('himalayanFlavoursEmail', email);
   };
 
-  // Don't render the main content until email is entered
-  if (!hasEnteredEmail) {
-    return (
-      <div className="App">
-        <EmailPopup 
-          isVisible={showEmailPopup} 
-          onEmailSubmit={handleEmailSubmit} 
-        />
-      </div>
-    );
-  }
+  const handleAdminLogin = () => {
+    setIsAdminLoggedIn(true);
+  };
+
+  const handleAdminLogout = async () => {
+    try {
+      await authService.signOut();
+      setIsAdminLoggedIn(false);
+    } catch (error) {
+      console.error('Logout error:', error);
+      // Still set logged out state even if Supabase logout fails
+      setIsAdminLoggedIn(false);
+    }
+  };
 
   return (
-    <div className="App">
-      <Hero />
-      <StorySection />
-      <ProductsSection />
-      <Footer />
-    </div>
+    <Router>
+      <div className="App">
+        <Routes>
+          <Route path="/admin" element={
+            isAdminLoggedIn ? (
+              <AdminPanel onLogout={handleAdminLogout} />
+            ) : (
+              <Login onLoginSuccess={handleAdminLogin} />
+            )
+          } />
+          <Route path="/" element={
+            <>
+              <Hero />
+              <StorySection />
+              <ProductsSection />
+              <Footer />
+              {/* Show EmailPopup as overlay if email hasn't been entered */}
+              {!hasEnteredEmail && (
+                <EmailPopup 
+                  isVisible={showEmailPopup} 
+                  onEmailSubmit={handleEmailSubmit} 
+                />
+              )}
+            </>
+          } />
+        </Routes>
+      </div>
+    </Router>
   );
 }
 

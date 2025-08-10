@@ -1,60 +1,40 @@
 import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import config from '../config';
+import { motion } from 'framer-motion';
+import { emailService } from '../supabase';
 import './EmailPopup.css';
 
 const EmailPopup = ({ isVisible, onEmailSubmit }) => {
   const [email, setEmail] = useState('');
-  const [isValid, setIsValid] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const validateEmail = (email) => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
-  };
+  const [error, setError] = useState('');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    if (!validateEmail(email)) {
-      setIsValid(false);
+    if (!email || !email.includes('@')) {
+      setError('Please enter a valid email address');
       return;
     }
 
     setIsSubmitting(true);
-    setIsValid(true);
+    setError('');
 
-    // Try backend API first, fallback to Formspree in production
     try {
-      if (config.isDevelopment) {
-        // Development: Use local backend
-        const response = await fetch(config.getApiUrl(config.emailEndpoint), {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ email }),
-        });
-
-        if (!response.ok) {
-          throw new Error('Failed to submit email');
-        }
-
-        const result = await response.json();
-        console.log('Email collected via backend:', result);
-      } else {
-        // Production: Use Formspree or similar service
-        // For now, just store locally and show success
-        console.log('Production mode: Email would be sent to Formspree');
-      }
+      // Store email in Supabase
+      await emailService.addEmail(email);
       
-      // Store email in localStorage to remember the user
+      // Store email in localStorage as backup and for user experience
       localStorage.setItem('himalayanFlavoursEmail', email);
       
+      // Call the parent callback
       onEmailSubmit(email);
+      
+      console.log('Email collected and stored in Supabase:', email);
     } catch (error) {
       console.error('Error submitting email:', error);
-      // Still allow access even if server fails
+      setError('Failed to submit email. Please try again.');
+      
+      // Still allow access even if Supabase fails
       localStorage.setItem('himalayanFlavoursEmail', email);
       onEmailSubmit(email);
     } finally {
@@ -62,86 +42,54 @@ const EmailPopup = ({ isVisible, onEmailSubmit }) => {
     }
   };
 
-  const handleEmailChange = (e) => {
-    setEmail(e.target.value);
-    if (!isValid) {
-      setIsValid(true);
-    }
-  };
+  if (!isVisible) return null;
 
   return (
-    <AnimatePresence>
-      {isVisible && (
-        <motion.div
-          className="email-popup-overlay"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.3 }}
-        >
-          <motion.div
-            className="email-popup"
-            initial={{ scale: 0.8, opacity: 0, y: 50 }}
-            animate={{ scale: 1, opacity: 1, y: 0 }}
-            exit={{ scale: 0.8, opacity: 0, y: 50 }}
-            transition={{ duration: 0.4, type: "spring", stiffness: 300 }}
+    <motion.div
+      className="email-popup-overlay"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+    >
+      <motion.div
+        className="email-popup"
+        initial={{ scale: 0.8, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ delay: 0.1 }}
+      >
+        <div className="popup-header">
+          <h2>Welcome to Himalayan Flavours Hub!</h2>
+          <p>Enter your email to unlock exclusive content and stay updated with our latest offerings.</p>
+        </div>
+        
+        <form onSubmit={handleSubmit} className="email-form">
+          <div className="input-group">
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="Enter your email address"
+              required
+              disabled={isSubmitting}
+              className="email-input"
+            />
+            {error && <span className="error-message">{error}</span>}
+          </div>
+          
+          <button 
+            type="submit" 
+            className="submit-btn"
+            disabled={isSubmitting}
           >
-            <div className="popup-header">
-              <img 
-                src="/logo.png" 
-                alt="Himalayan Flavours Hub" 
-                className="popup-logo"
-              />
-              <h2>Welcome to Himalayan Flavours Hub</h2>
-              <p>Enter your email to explore our authentic Himalayan spices and flavors</p>
-            </div>
-
-            <form onSubmit={handleSubmit} className="email-form">
-              <div className="input-group">
-                <input
-                  type="email"
-                  value={email}
-                  onChange={handleEmailChange}
-                  placeholder="Enter your email address"
-                  className={`email-input ${!isValid ? 'error' : ''}`}
-                  required
-                />
-                {!isValid && (
-                  <motion.span 
-                    className="error-message"
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                  >
-                    Please enter a valid email address
-                  </motion.span>
-                )}
-              </div>
-
-              <motion.button
-                type="submit"
-                className="submit-btn"
-                disabled={isSubmitting}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                {isSubmitting ? (
-                  <span className="loading">
-                    <div className="spinner"></div>
-                    Entering...
-                  </span>
-                ) : (
-                  'Enter Website'
-                )}
-              </motion.button>
-            </form>
-
-            <div className="popup-footer">
-              <p>By entering your email, you agree to receive updates about our products and special offers.</p>
-            </div>
-          </motion.div>
-        </motion.div>
-      )}
-    </AnimatePresence>
+            {isSubmitting ? 'Submitting...' : 'Get Access'}
+          </button>
+        </form>
+        
+        <div className="popup-footer">
+          <p>By entering your email, you agree to receive updates from Himalayan Flavours Hub.</p>
+        </div>
+      </motion.div>
+    </motion.div>
   );
 };
 
