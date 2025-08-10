@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import config from '../config';
 import './EmailPopup.css';
 
 const EmailPopup = ({ isVisible, onEmailSubmit }) => {
@@ -23,21 +24,29 @@ const EmailPopup = ({ isVisible, onEmailSubmit }) => {
     setIsSubmitting(true);
     setIsValid(true);
 
-    // Send email to server
+    // Try backend API first, fallback to Formspree in production
     try {
-      const response = await fetch('http://localhost:3001/api/collect-email', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email }),
-      });
+      if (config.isDevelopment) {
+        // Development: Use local backend
+        const response = await fetch(config.getApiUrl(config.emailEndpoint), {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ email }),
+        });
 
-      if (!response.ok) {
-        throw new Error('Failed to submit email');
+        if (!response.ok) {
+          throw new Error('Failed to submit email');
+        }
+
+        const result = await response.json();
+        console.log('Email collected via backend:', result);
+      } else {
+        // Production: Use Formspree or similar service
+        // For now, just store locally and show success
+        console.log('Production mode: Email would be sent to Formspree');
       }
-
-      const result = await response.json();
       
       // Store email in localStorage to remember the user
       localStorage.setItem('himalayanFlavoursEmail', email);

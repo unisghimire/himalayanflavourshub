@@ -314,7 +314,9 @@
 
         async function loadEmails() {
             try {
-                const response = await fetch('http://localhost:3001/api/emails');
+                // Get current domain for API calls
+                const apiBaseUrl = window.location.origin;
+                const response = await fetch(`${apiBaseUrl}/api/emails`);
                 const data = await response.json();
                 emails = data.emails || [];
                 displayEmails();

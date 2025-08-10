@@ -32,7 +32,7 @@ app.post('/api/collect-email', (req, res) => {
     const emails = JSON.parse(fs.readFileSync(EMAILS_FILE, 'utf8'));
     
     // Check if email already exists
-    if (!emails.includes(email)) {
+    if (!emails.some(e => e.email === email)) {
       emails.push({
         email: email,
         timestamp: new Date().toISOString(),
@@ -82,8 +82,13 @@ app.get('/admin.html', (req, res) => {
   res.sendFile(path.join(__dirname, 'admin.html'));
 });
 
-// Serve React app for all other routes
+// Serve React app for all other routes (but not admin or login routes)
 app.get('*', (req, res) => {
+  // Don't serve React app for admin or login routes
+  if (req.path.startsWith('/admin') || req.path.startsWith('/login')) {
+    return res.status(404).send('Not found');
+  }
+  
   res.sendFile(path.join(__dirname, 'build', 'index.html'));
 });
 
@@ -91,4 +96,6 @@ app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
   console.log(`Email collection endpoint: http://localhost:${PORT}/api/collect-email`);
   console.log(`View emails: http://localhost:${PORT}/api/emails`);
+  console.log(`Admin panel: http://localhost:${PORT}/admin`);
+  console.log(`Login page: http://localhost:${PORT}/login`);
 }); 
