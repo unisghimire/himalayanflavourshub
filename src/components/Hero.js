@@ -1,8 +1,29 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { contentService } from '../contentService';
 import './Hero.css';
 
 const Hero = () => {
+  const [content, setContent] = useState({
+    title: "From Top of the World",
+    subtitle: "Discover authentic Himalayan spices and flavors, carefully sourced from the pristine mountains and brought to your table with traditional wisdom and modern care.",
+    primaryButtonText: "Our Story",
+    secondaryButtonText: "Explore Products",
+    primaryButtonLink: "#story",
+    secondaryButtonLink: "#products"
+  });
+
+  useEffect(() => {
+    const fetchContent = async () => {
+      const heroContent = await contentService.getSectionContent('hero');
+      if (heroContent) {
+        setContent(heroContent);
+      }
+    };
+
+    fetchContent();
+  }, []);
+
   return (
     <section className="hero">
       <div className="hero-background">
@@ -32,7 +53,7 @@ const Hero = () => {
             animate={{ opacity: 1 }}
             transition={{ delay: 0.5, duration: 1 }}
           >
-            From Top of the World
+            {content.title}
           </motion.h1>
           
           <motion.p 
@@ -41,8 +62,7 @@ const Hero = () => {
             animate={{ opacity: 1 }}
             transition={{ delay: 0.8, duration: 1 }}
           >
-            Discover authentic Himalayan spices and flavors, carefully sourced from the pristine mountains 
-            and brought to your table with traditional wisdom and modern care.
+            {content.subtitle}
           </motion.p>
           
           <motion.div 
@@ -51,8 +71,8 @@ const Hero = () => {
             animate={{ opacity: 1 }}
             transition={{ delay: 1.1, duration: 1 }}
           >
-            <a href="#story" className="btn btn-primary">Our Story</a>
-            <a href="#products" className="btn btn-secondary">Explore Products</a>
+            <a href={content.primaryButtonLink} className="btn btn-primary">{content.primaryButtonText}</a>
+            <a href={content.secondaryButtonLink} className="btn btn-secondary">{content.secondaryButtonText}</a>
           </motion.div>
         </motion.div>
       </div>

@@ -29,10 +29,15 @@ function App() {
       setHasEnteredEmail(true);
     }
 
-    // Check if admin is already authenticated
+    // Check if admin is already authenticated and has admin role
     const checkAdminAuth = async () => {
       const isAuthenticated = await authService.isAuthenticated();
-      setIsAdminLoggedIn(isAuthenticated);
+      if (isAuthenticated) {
+        const isAdmin = await authService.isAdmin();
+        setIsAdminLoggedIn(isAdmin);
+      } else {
+        setIsAdminLoggedIn(false);
+      }
     };
     
     checkAdminAuth();
@@ -41,14 +46,16 @@ function App() {
     const handleOAuthCallback = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
-        setIsAdminLoggedIn(true);
+        const isAdmin = await authService.isAdmin();
+        setIsAdminLoggedIn(isAdmin);
       }
     };
 
     // Listen for auth state changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (event === 'SIGNED_IN' && session) {
-        setIsAdminLoggedIn(true);
+        const isAdmin = await authService.isAdmin();
+        setIsAdminLoggedIn(isAdmin);
       } else if (event === 'SIGNED_OUT') {
         setIsAdminLoggedIn(false);
       }

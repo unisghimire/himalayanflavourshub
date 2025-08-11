@@ -7,13 +7,24 @@ const Login = ({ onLoginSuccess }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [accessDenied, setAccessDenied] = useState(false);
+  const [userEmail, setUserEmail] = useState('');
 
   useEffect(() => {
     // Check if already authenticated with Supabase
     const checkAuth = async () => {
       const isAuthenticated = await authService.isAuthenticated();
       if (isAuthenticated) {
-        onLoginSuccess();
+        // Check if user has admin role
+        const isAdmin = await authService.isAdmin();
+        if (isAdmin) {
+          onLoginSuccess();
+        } else {
+          // User is authenticated but not admin
+          const user = await authService.getCurrentUser();
+          setUserEmail(user?.email || 'Unknown user');
+          setAccessDenied(true);
+        }
       }
     };
     
@@ -24,6 +35,7 @@ const Login = ({ onLoginSuccess }) => {
     setIsLoading(true);
     setError('');
     setSuccess('');
+    setAccessDenied(false);
 
     try {
       // Sign in with Google OAuth
@@ -37,6 +49,16 @@ const Login = ({ onLoginSuccess }) => {
       setError('Google sign in failed. Please try again.');
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleSignOut = async () => {
+    try {
+      await authService.signOut();
+      setAccessDenied(false);
+      setUserEmail('');
+    } catch (error) {
+      console.error('Sign out error:', error);
     }
   };
 
@@ -94,6 +116,26 @@ const Login = ({ onLoginSuccess }) => {
             animate={{ opacity: 1, y: 0 }}
           >
             {success}
+          </motion.div>
+        )}
+        
+        {accessDenied && (
+          <motion.div 
+            className="access-denied-section"
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+          >
+            <div className="access-denied-content">
+              <h3>🚫 Access Denied</h3>
+              <p>Sorry, <strong>{userEmail}</strong> does not have administrative privileges.</p>
+              <p>Only users with admin roles can access the Himalayan Flavours Hub Admin Panel.</p>
+              <button 
+                onClick={handleSignOut}
+                className="btn btn-secondary"
+              >
+                Sign Out
+              </button>
+            </div>
           </motion.div>
         )}
         

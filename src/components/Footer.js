@@ -1,8 +1,57 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { contentService } from '../contentService';
 import './Footer.css';
 
 const Footer = () => {
+  const [footerContent, setFooterContent] = useState({
+    branding: {
+      title: 'HIMALAYAN FLAVOURS HUB',
+      subtitle: 'From Top of the World',
+      description: 'Bringing authentic Himalayan spices and flavors to your kitchen, preserving traditional wisdom and quality for generations to come.'
+    },
+    quickLinks: [
+      { text: 'Our Story', url: '#story' },
+      { text: 'Products', url: '#products' },
+      { text: 'Contact', url: '#contact' },
+      { text: 'About Us', url: '#about' }
+    ],
+    contactInfo: [
+      { type: 'address', icon: '📍', content: 'Himalayan Region, India' },
+      { type: 'email', icon: '📧', content: 'info@himalayanflavours.com' },
+      { type: 'phone', icon: '📞', content: '+91 98765 43210' }
+    ],
+    socialLinks: [
+      { platform: 'facebook', icon: '📘', url: '#' },
+      { platform: 'instagram', icon: '📷', url: '#' },
+      { platform: 'twitter', icon: '🐦', url: '#' },
+      { platform: 'linkedin', icon: '💼', url: '#' }
+    ],
+    bottom: {
+      copyright: '© 2025 Himalayan Flavours Hub. All rights reserved.',
+      legalLinks: [
+        { text: 'Privacy Policy', url: '#' },
+        { text: 'Terms of Service', url: '#' },
+        { text: 'Shipping Info', url: '#' }
+      ]
+    }
+  });
+
+  useEffect(() => {
+    const loadFooterContent = async () => {
+      try {
+        const content = await contentService.getSectionContent('footer');
+        if (content) {
+          setFooterContent(content);
+        }
+      } catch (error) {
+        console.error('Error loading footer content:', error);
+      }
+    };
+
+    loadFooterContent();
+  }, []);
+
   return (
     <footer className="footer">
       <div className="container">
@@ -22,14 +71,13 @@ const Footer = () => {
                   className="footer-logo-img"
                 />
                 <div className="logo-text">
-                  <span className="logo-title">HIMALAYAN FLAVOURS HUB</span>
-                  <span className="logo-subtitle">From Top of the World</span>
+                  <span className="logo-title">{footerContent.branding?.title || 'HIMALAYAN FLAVOURS HUB'}</span>
+                  <span className="logo-subtitle">{footerContent.branding?.subtitle || 'From Top of the World'}</span>
                 </div>
               </div>
             </div>
             <p className="footer-description">
-              Bringing authentic Himalayan spices and flavors to your kitchen, 
-              preserving traditional wisdom and quality for generations to come.
+              {footerContent.branding?.description || 'Bringing authentic Himalayan spices and flavors to your kitchen, preserving traditional wisdom and quality for generations to come.'}
             </p>
           </motion.div>
 
@@ -42,10 +90,18 @@ const Footer = () => {
           >
             <h4>Quick Links</h4>
             <ul className="footer-links">
-              <li><a href="#story">Our Story</a></li>
-              <li><a href="#products">Products</a></li>
-              <li><a href="#contact">Contact</a></li>
-              <li><a href="#about">About Us</a></li>
+              {footerContent.quickLinks?.map((link, index) => (
+                <li key={index}>
+                  <a href={link.url}>{link.text}</a>
+                </li>
+              )) || (
+                <>
+                  <li><a href="#story">Our Story</a></li>
+                  <li><a href="#products">Products</a></li>
+                  <li><a href="#contact">Contact</a></li>
+                  <li><a href="#about">About Us</a></li>
+                </>
+              )}
             </ul>
           </motion.div>
 
@@ -58,18 +114,27 @@ const Footer = () => {
           >
             <h4>Contact Info</h4>
             <div className="contact-info">
-              <div className="contact-item">
-                <span className="contact-icon">📍</span>
-                <span>Himalayan Region, India</span>
-              </div>
-              <div className="contact-item">
-                <span className="contact-icon">📧</span>
-                <span>info@himalayanflavours.com</span>
-              </div>
-              <div className="contact-item">
-                <span className="contact-icon">📞</span>
-                <span>+91 98765 43210</span>
-              </div>
+              {footerContent.contactInfo?.map((contact, index) => (
+                <div key={index} className="contact-item">
+                  <span className="contact-icon">{contact.icon}</span>
+                  <span>{contact.content}</span>
+                </div>
+              )) || (
+                <>
+                  <div className="contact-item">
+                    <span className="contact-icon">📍</span>
+                    <span>Himalayan Region, India</span>
+                  </div>
+                  <div className="contact-item">
+                    <span className="contact-icon">📧</span>
+                    <span>info@himalayanflavours.com</span>
+                  </div>
+                  <div className="contact-item">
+                    <span className="contact-icon">📞</span>
+                    <span>+91 98765 43210</span>
+                  </div>
+                </>
+              )}
             </div>
           </motion.div>
 
@@ -82,10 +147,18 @@ const Footer = () => {
           >
             <h4>Follow Us</h4>
             <div className="social-links">
-              <a href="#" className="social-link">📘 Facebook</a>
-              <a href="#" className="social-link">📷 Instagram</a>
-              <a href="#" className="social-link">🐦 Twitter</a>
-              <a href="#" className="social-link">💼 LinkedIn</a>
+              {footerContent.socialLinks?.map((social, index) => (
+                <a key={index} href={social.url} className="social-link">
+                  {social.icon} {social.platform.charAt(0).toUpperCase() + social.platform.slice(1)}
+                </a>
+              )) || (
+                <>
+                  <a href="#" className="social-link">📘 Facebook</a>
+                  <a href="#" className="social-link">📷 Instagram</a>
+                  <a href="#" className="social-link">🐦 Twitter</a>
+                  <a href="#" className="social-link">💼 LinkedIn</a>
+                </>
+              )}
             </div>
           </motion.div>
         </div>
@@ -99,11 +172,17 @@ const Footer = () => {
         >
           <div className="footer-divider"></div>
           <div className="footer-bottom-content">
-            <p>&copy; 2025 Himalayan Flavours Hub. All rights reserved.</p>
+            <p>{footerContent.bottom?.copyright || '© 2025 Himalayan Flavours Hub. All rights reserved.'}</p>
             <div className="footer-bottom-links">
-              <a href="#">Privacy Policy</a>
-              <a href="#">Terms of Service</a>
-              <a href="#">Shipping Info</a>
+              {footerContent.bottom?.legalLinks?.map((link, index) => (
+                <a key={index} href={link.url}>{link.text}</a>
+              )) || (
+                <>
+                  <a href="#">Privacy Policy</a>
+                  <a href="#">Terms of Service</a>
+                  <a href="#">Shipping Info</a>
+                </>
+              )}
             </div>
           </div>
         </motion.div>
