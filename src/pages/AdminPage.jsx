@@ -97,7 +97,7 @@ const ProductManagement = () => {
         setProducts(productsData)
 
         // Load hero banners from service
-        const bannersData = heroBannerService.getHeroBanners()
+        const bannersData = await heroBannerService.getHeroBanners()
         setHeroBanners(bannersData)
       } catch (error) {
         console.error('Error loading data:', error)
@@ -219,7 +219,7 @@ const ProductManagement = () => {
         }
         
         // Update local state and service
-        const updatedBanners = heroBannerService.addHeroBanner(newBanner)
+        const updatedBanners = await heroBannerService.addHeroBanner(newBanner)
         setHeroBanners(updatedBanners)
         
         alert('Hero banner uploaded successfully!')
@@ -247,7 +247,7 @@ const ProductManagement = () => {
       }
       
       // Update local state and service
-      const updatedBanners = heroBannerService.deleteHeroBanner(bannerId)
+      const updatedBanners = await heroBannerService.deleteHeroBanner(bannerId)
       setHeroBanners(updatedBanners)
       alert('Hero banner deleted successfully!')
     } catch (error) {
@@ -277,7 +277,7 @@ const ProductManagement = () => {
       }
       
       // Update local state and service
-      const updatedBanners = heroBannerService.updateHeroBanner(bannerId, {
+      const updatedBanners = await heroBannerService.updateHeroBanner(bannerId, {
         title,
         subtitle,
         image: imageUrl

@@ -22,7 +22,7 @@ const HeroSection = () => {
         setTrendingProducts(trendingData.slice(0, 3)); // Show only first 3 trending products
 
         // Load hero banners from service
-        const banners = heroBannerService.getHeroBanners();
+        const banners = await heroBannerService.getHeroBanners();
         setHeroBanners(banners);
       } catch (error) {
         console.error('Error fetching data:', error);
