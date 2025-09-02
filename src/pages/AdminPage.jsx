@@ -34,6 +34,7 @@ import {
 import { useAuth } from '../context/AuthContext'
 import { categoryService, productService } from '../services/categoryService'
 import { storageService } from '../services/storageService'
+import { heroBannerService } from '../services/heroBannerService'
 
 // Product Management Component
 const ProductManagement = () => {
@@ -49,29 +50,7 @@ const ProductManagement = () => {
   const [selectedHeroBanner, setSelectedHeroBanner] = useState(null)
   const [selectedProduct, setSelectedProduct] = useState(null)
   const [selectedCategory, setSelectedCategory] = useState(null)
-  const [heroBanners, setHeroBanners] = useState([
-    {
-      id: 1,
-      image: "/images/hero/himalayan-spices.jpg",
-      title: "Himalayan Spices",
-      subtitle: "Pure & Authentic",
-      order: 0
-    },
-    {
-      id: 2,
-      image: "/images/hero/mountain-harvest.jpg",
-      title: "Mountain Harvest",
-      subtitle: "Fresh from Nature",
-      order: 1
-    },
-    {
-      id: 3,
-      image: "/images/hero/traditional-methods.jpg",
-      title: "Traditional Methods",
-      subtitle: "Centuries Old Wisdom",
-      order: 2
-    }
-  ])
+  const [heroBanners, setHeroBanners] = useState([])
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedCategoryFilter, setSelectedCategoryFilter] = useState('all')
   const [filterStatus, setFilterStatus] = useState('all')
@@ -103,7 +82,7 @@ const ProductManagement = () => {
     category.name.toLowerCase().includes(searchTerm.toLowerCase())
   )
 
-  // Load categories and products from database
+    // Load categories, products, and hero banners from database
   useEffect(() => {
     const loadData = async () => {
       try {
@@ -116,6 +95,10 @@ const ProductManagement = () => {
         setProductsLoading(true)
         const productsData = await productService.getAllProducts()
         setProducts(productsData)
+
+        // Load hero banners from service
+        const bannersData = heroBannerService.getHeroBanners()
+        setHeroBanners(bannersData)
       } catch (error) {
         console.error('Error loading data:', error)
         alert('Failed to load data')
@@ -124,7 +107,7 @@ const ProductManagement = () => {
         setProductsLoading(false)
       }
     }
-    
+
     loadData()
   }, [])
 
@@ -235,8 +218,9 @@ const ProductManagement = () => {
           order: heroBanners.length
         }
         
-        // Update local state
-        setHeroBanners(prev => [...prev, newBanner])
+        // Update local state and service
+        const updatedBanners = heroBannerService.addHeroBanner(newBanner)
+        setHeroBanners(updatedBanners)
         
         alert('Hero banner uploaded successfully!')
         return newBanner
@@ -262,8 +246,9 @@ const ProductManagement = () => {
         }
       }
       
-      // Update local state
-      setHeroBanners(prev => prev.filter(banner => banner.id !== bannerId))
+      // Update local state and service
+      const updatedBanners = heroBannerService.deleteHeroBanner(bannerId)
+      setHeroBanners(updatedBanners)
       alert('Hero banner deleted successfully!')
     } catch (error) {
       console.error('Error deleting hero banner:', error)
@@ -291,12 +276,13 @@ const ProductManagement = () => {
         }
       }
       
-      // Update local state
-      setHeroBanners(prev => prev.map(banner => 
-        banner.id === bannerId 
-          ? { ...banner, title, subtitle, image: imageUrl }
-          : banner
-      ))
+      // Update local state and service
+      const updatedBanners = heroBannerService.updateHeroBanner(bannerId, {
+        title,
+        subtitle,
+        image: imageUrl
+      })
+      setHeroBanners(updatedBanners)
       
       alert('Hero banner updated successfully!')
       setShowEditHeroBanner(false)

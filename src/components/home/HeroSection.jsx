@@ -3,50 +3,65 @@ import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { ArrowRight, Mountain, Sparkles } from 'lucide-react'
 import { productService } from '../../services/categoryService'
+import { heroBannerService } from '../../services/heroBannerService'
 
 const HeroSection = () => {
   const [currentSlide, setCurrentSlide] = React.useState(0);
   const [trendingProducts, setTrendingProducts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [heroBanners, setHeroBanners] = useState([]);
 
   // Fetch trending products
   useEffect(() => {
-    const fetchTrendingProducts = async () => {
+    const fetchData = async () => {
       try {
         setLoading(true);
+        
+        // Fetch trending products
         const trendingData = await productService.getTrendingProducts();
         setTrendingProducts(trendingData.slice(0, 3)); // Show only first 3 trending products
+
+        // Load hero banners from service
+        const banners = heroBannerService.getHeroBanners();
+        setHeroBanners(banners);
       } catch (error) {
-        console.error('Error fetching trending products:', error);
+        console.error('Error fetching data:', error);
         // Fallback to dummy data if fetch fails
         setTrendingProducts([
           { name: "Himalayan Black Pepper", icon: "🌶️", rating: "4.9", price: "$24.99", badge: "HOT" },
           { name: "Mountain Garam Masala", icon: "✨", rating: "5.0", price: "$18.99", badge: "BEST" },
           { name: "Wild Himalayan Thyme", icon: "🌿", rating: "4.8", price: "$16.99", badge: "NEW" }
         ]);
+        
+        // No fallback banners - start with empty array
+        setHeroBanners([]);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchTrendingProducts();
+    fetchData();
   }, []);
 
   // Auto-slide functionality
   React.useEffect(() => {
+    if (heroBanners.length === 0) return;
+    
     const timer = setInterval(() => {
-      setCurrentSlide((prev) => (prev + 1) % 3);
+      setCurrentSlide((prev) => (prev + 1) % heroBanners.length);
     }, 5000); // Change slide every 5 seconds
 
     return () => clearInterval(timer);
-  }, []);
+  }, [heroBanners.length]);
 
   const nextSlide = () => {
-    setCurrentSlide((prev) => (prev + 1) % 3);
+    if (heroBanners.length === 0) return;
+    setCurrentSlide((prev) => (prev + 1) % heroBanners.length);
   };
 
   const prevSlide = () => {
-    setCurrentSlide((prev) => (prev - 1 + 3) % 3);
+    if (heroBanners.length === 0) return;
+    setCurrentSlide((prev) => (prev - 1 + heroBanners.length) % heroBanners.length);
   };
 
   const goToSlide = (index) => {
@@ -143,23 +158,8 @@ const HeroSection = () => {
              >
                                {/* Carousel Images */}
                 <div className="relative h-64 sm:h-72 md:h-80 lg:h-[420px] overflow-hidden">
-                                   {[
-                    {
-                      image: "/images/hero/himalayan-spices.jpg",
-                      title: "Himalayan Spices",
-                      subtitle: "Pure & Authentic"
-                    },
-                    {
-                      image: "/images/hero/mountain-harvest.jpg",
-                      title: "Mountain Harvest",
-                      subtitle: "Fresh from Nature"
-                    },
-                    {
-                      image: "/images/hero/traditional-methods.jpg",
-                      title: "Traditional Methods",
-                      subtitle: "Centuries Old Wisdom"
-                    }
-                  ].map((slide, index) => (
+                  {heroBanners.length > 0 ? (
+                    heroBanners.map((slide, index) => (
                                        <motion.div
                       key={index}
                       className="absolute inset-0"
@@ -203,42 +203,57 @@ const HeroSection = () => {
                         </div>
                      </div>
                    </motion.div>
-                 ))}
+                 ))
+                  ) : (
+                    <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-green-600 to-green-800">
+                      <div className="text-center text-white">
+                        <div className="text-4xl mb-4">🏔️</div>
+                        <h3 className="text-xl font-bold mb-2">No Hero Banners</h3>
+                        <p className="text-green-100">Upload banners from the admin panel</p>
+                      </div>
+                    </div>
+                  )}
                </div>
 
                                {/* Navigation Dots */}
-                <div className="absolute bottom-2 sm:bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-1 sm:space-x-2">
-                  {[0, 1, 2].map((index) => (
-                    <motion.button
-                      key={index}
-                      onClick={() => goToSlide(index)}
-                      className={`w-2 h-2 sm:w-3 sm:h-3 rounded-full transition-colors ${
-                        index === currentSlide ? 'bg-white' : 'bg-white/50 hover:bg-white/70'
-                      }`}
-                      whileHover={{ scale: 1.2 }}
-                      whileTap={{ scale: 0.8 }}
-                    />
-                  ))}
-                </div>
+                {heroBanners.length > 0 && (
+                  <div className="absolute bottom-2 sm:bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-1 sm:space-x-2">
+                    {heroBanners.map((_, index) => (
+                      <motion.button
+                        key={index}
+                        onClick={() => goToSlide(index)}
+                        className={`w-2 h-2 sm:w-3 sm:h-3 rounded-full transition-colors ${
+                          index === currentSlide ? 'bg-white' : 'bg-white/50 hover:bg-white/70'
+                        }`}
+                        whileHover={{ scale: 1.2 }}
+                        whileTap={{ scale: 0.8 }}
+                      />
+                    ))}
+                  </div>
+                )}
 
                                {/* Navigation Arrows */}
-                <motion.button
-                  onClick={prevSlide}
-                  className="absolute left-2 sm:left-4 top-1/2 transform -translate-y-1/2 w-8 h-8 sm:w-10 sm:h-10 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-white/30 transition-all duration-300"
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.9 }}
-                >
-                  <span className="text-lg sm:text-xl">‹</span>
-                </motion.button>
-                
-                <motion.button
-                  onClick={nextSlide}
-                  className="absolute right-2 sm:right-4 top-1/2 transform -translate-y-1/2 w-8 h-8 sm:w-10 sm:h-10 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-white/30 transition-all duration-300"
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.9 }}
-                >
-                  <span className="text-lg sm:text-xl">›</span>
-                </motion.button>
+                {heroBanners.length > 0 && (
+                  <>
+                    <motion.button
+                      onClick={prevSlide}
+                      className="absolute left-2 sm:left-4 top-1/2 transform -translate-y-1/2 w-8 h-8 sm:w-10 sm:h-10 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-white/30 transition-all duration-300"
+                      whileHover={{ scale: 1.1 }}
+                      whileTap={{ scale: 0.9 }}
+                    >
+                      <span className="text-lg sm:text-xl">‹</span>
+                    </motion.button>
+                    
+                    <motion.button
+                      onClick={nextSlide}
+                      className="absolute right-2 sm:right-4 top-1/2 transform -translate-y-1/2 w-8 h-8 sm:w-10 sm:h-10 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-white/30 transition-all duration-300"
+                      whileHover={{ scale: 1.1 }}
+                      whileTap={{ scale: 0.9 }}
+                    >
+                      <span className="text-lg sm:text-xl">›</span>
+                    </motion.button>
+                  </>
+                )}
 
                                {/* Floating Badge */}
                 <motion.div
