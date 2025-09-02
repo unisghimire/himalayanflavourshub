@@ -204,5 +204,67 @@ export const storageService = {
     }
 
     return { valid: true }
+  },
+
+  // Upload hero banner image
+  async uploadHeroBanner(file) {
+    try {
+      const validation = this.validateFile(file)
+      if (!validation.valid) {
+        return { success: false, error: validation.error }
+      }
+
+      const fileExt = file.name.split('.').pop()
+      const fileName = `hero_banner_${Date.now()}.${fileExt}`
+      const filePath = `hero/${fileName}`
+
+      const { data, error } = await supabase.storage
+        .from('gallery-images')
+        .upload(filePath, file, {
+          cacheControl: '3600',
+          upsert: false
+        })
+
+      if (error) throw error
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('gallery-images')
+        .getPublicUrl(filePath)
+
+      return { success: true, url: publicUrl, path: filePath }
+    } catch (error) {
+      console.error('Error uploading hero banner:', error)
+      return { success: false, error: error.message }
+    }
+  },
+
+  // Delete hero banner image
+  async deleteHeroBanner(imageUrl) {
+    try {
+      if (!imageUrl || !imageUrl.includes('supabase.co')) {
+        return { success: false, error: 'Invalid image URL' }
+      }
+
+      // Parse the URL to get the file path
+      const urlParts = imageUrl.split('/storage/v1/object/public/')
+      if (urlParts.length < 2) {
+        return { success: false, error: 'Invalid Supabase URL format' }
+      }
+
+      const pathParts = urlParts[1].split('/')
+      const bucket = pathParts[0]
+      const filePath = pathParts.slice(1).join('/')
+
+      // Remove query parameters if any
+      const cleanFilePath = filePath.split('?')[0]
+
+      return await this.deleteImage(bucket, cleanFilePath)
+    } catch (error) {
+      console.error('Error deleting hero banner:', error)
+      return {
+        success: false,
+        error: error.message
+      }
+    }
   }
 }

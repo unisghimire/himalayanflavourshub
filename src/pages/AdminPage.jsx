@@ -44,8 +44,34 @@ const ProductManagement = () => {
   const [showEditProduct, setShowEditProduct] = useState(false)
   const [showViewCategory, setShowViewCategory] = useState(false)
   const [showEditCategory, setShowEditCategory] = useState(false)
+  const [showHeroBanner, setShowHeroBanner] = useState(false)
+  const [showEditHeroBanner, setShowEditHeroBanner] = useState(false)
+  const [selectedHeroBanner, setSelectedHeroBanner] = useState(null)
   const [selectedProduct, setSelectedProduct] = useState(null)
   const [selectedCategory, setSelectedCategory] = useState(null)
+  const [heroBanners, setHeroBanners] = useState([
+    {
+      id: 1,
+      image: "/images/hero/himalayan-spices.jpg",
+      title: "Himalayan Spices",
+      subtitle: "Pure & Authentic",
+      order: 0
+    },
+    {
+      id: 2,
+      image: "/images/hero/mountain-harvest.jpg",
+      title: "Mountain Harvest",
+      subtitle: "Fresh from Nature",
+      order: 1
+    },
+    {
+      id: 3,
+      image: "/images/hero/traditional-methods.jpg",
+      title: "Traditional Methods",
+      subtitle: "Centuries Old Wisdom",
+      order: 2
+    }
+  ])
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedCategoryFilter, setSelectedCategoryFilter] = useState('all')
   const [filterStatus, setFilterStatus] = useState('all')
@@ -189,6 +215,114 @@ const ProductManagement = () => {
     }
   }
 
+  const handleUploadHeroBanner = async (file, title, subtitle) => {
+    try {
+      // Validate file
+      const validation = storageService.validateFile(file)
+      if (!validation.valid) {
+        alert(validation.error)
+        return null
+      }
+      
+      // Upload to Supabase Storage
+      const uploadResult = await storageService.uploadHeroBanner(file)
+      if (uploadResult.success) {
+        const newBanner = {
+          id: Date.now(), // Temporary ID
+          image: uploadResult.url,
+          title: title,
+          subtitle: subtitle,
+          order: heroBanners.length
+        }
+        
+        // Update local state
+        setHeroBanners(prev => [...prev, newBanner])
+        
+        alert('Hero banner uploaded successfully!')
+        return newBanner
+      } else {
+        alert('Failed to upload hero banner: ' + uploadResult.error)
+        return null
+      }
+    } catch (error) {
+      console.error('Error uploading hero banner:', error)
+      alert('Failed to upload hero banner. Please try again.')
+      return null
+    }
+  }
+
+  const handleDeleteHeroBanner = async (bannerId, imageUrl) => {
+    try {
+      // Only delete from Supabase Storage if it's a Supabase URL
+      if (imageUrl && imageUrl.includes('supabase.co')) {
+        const deleteResult = await storageService.deleteHeroBanner(imageUrl)
+        if (!deleteResult.success) {
+          alert('Failed to delete hero banner: ' + deleteResult.error)
+          return
+        }
+      }
+      
+      // Update local state
+      setHeroBanners(prev => prev.filter(banner => banner.id !== bannerId))
+      alert('Hero banner deleted successfully!')
+    } catch (error) {
+      console.error('Error deleting hero banner:', error)
+      alert('Failed to delete hero banner. Please try again.')
+    }
+  }
+
+  const handleEditHeroBanner = (banner) => {
+    setSelectedHeroBanner(banner)
+    setShowEditHeroBanner(true)
+  }
+
+  const handleUpdateHeroBanner = async (bannerId, title, subtitle, newImageFile = null) => {
+    try {
+      let imageUrl = selectedHeroBanner.image
+      
+      // If new image file is provided, upload it
+      if (newImageFile) {
+        const uploadResult = await storageService.uploadHeroBanner(newImageFile)
+        if (uploadResult.success) {
+          imageUrl = uploadResult.url
+        } else {
+          alert('Failed to upload new image: ' + uploadResult.error)
+          return
+        }
+      }
+      
+      // Update local state
+      setHeroBanners(prev => prev.map(banner => 
+        banner.id === bannerId 
+          ? { ...banner, title, subtitle, image: imageUrl }
+          : banner
+      ))
+      
+      alert('Hero banner updated successfully!')
+      setShowEditHeroBanner(false)
+      setSelectedHeroBanner(null)
+    } catch (error) {
+      console.error('Error updating hero banner:', error)
+      alert('Failed to update hero banner. Please try again.')
+    }
+  }
+
+  const handleCopyUrl = async (url) => {
+    try {
+      await navigator.clipboard.writeText(url)
+      alert('URL copied to clipboard!')
+    } catch (error) {
+      // Fallback for older browsers
+      const textArea = document.createElement('textarea')
+      textArea.value = url
+      document.body.appendChild(textArea)
+      textArea.select()
+      document.execCommand('copy')
+      document.body.removeChild(textArea)
+      alert('URL copied to clipboard!')
+    }
+  }
+
   // Category handler functions
   const handleViewCategory = (category) => {
     setSelectedCategory(category)
@@ -291,6 +425,16 @@ const ProductManagement = () => {
             }`}
           >
             Categories ({categories.length})
+          </button>
+          <button
+            onClick={() => setActiveSection('hero-banners')}
+            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+              activeSection === 'hero-banners'
+                ? 'bg-green-100 text-green-700'
+                : 'text-mountain-600 hover:text-mountain-800 hover:bg-gray-50'
+            }`}
+          >
+            Hero Banners ({heroBanners.length})
           </button>
         </div>
       </div>
@@ -518,6 +662,110 @@ const ProductManagement = () => {
              </table>
             )}
            </div>
+        </div>
+      )}
+
+      {/* Hero Banners Section */}
+      {activeSection === 'hero-banners' && (
+        <div className="space-y-6">
+          <div className="flex items-center justify-between">
+            <h2 className="text-2xl font-bold text-mountain-800">Hero Banner Management</h2>
+            <button
+              onClick={() => setShowHeroBanner(true)}
+              className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors flex items-center space-x-2"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Add Hero Banner</span>
+            </button>
+          </div>
+
+          <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {heroBanners.length === 0 ? (
+                <div className="col-span-full text-center py-12">
+                  <div className="text-gray-400 mb-4">
+                    <svg className="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                  </div>
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">No Hero Banners</h3>
+                  <p className="text-gray-500 mb-4">Upload your first hero banner image to get started.</p>
+                  <button
+                    onClick={() => setShowHeroBanner(true)}
+                    className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors"
+                  >
+                    Add Hero Banner
+                  </button>
+                </div>
+              ) : (
+                heroBanners.map((banner, index) => (
+                  <div key={banner.id} className="relative group">
+                    <div className="aspect-video bg-gray-100 rounded-lg overflow-hidden">
+                      <img
+                        src={banner.image}
+                        alt={banner.title}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      />
+                    </div>
+                    <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-50 transition-all duration-300 rounded-lg flex items-center justify-center">
+                      <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex space-x-2">
+                        <button
+                          onClick={() => handleEditHeroBanner(banner)}
+                          className="bg-blue-600 text-white p-2 rounded-full hover:bg-blue-700 transition-colors"
+                          title="Edit Banner"
+                        >
+                          <Edit className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => {
+                            if (confirm('Are you sure you want to delete this hero banner?')) {
+                              handleDeleteHeroBanner(banner.id, banner.image)
+                            }
+                          }}
+                          className="bg-red-600 text-white p-2 rounded-full hover:bg-red-700 transition-colors"
+                          title="Delete Banner"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                    <div className="mt-3">
+                      <h3 className="font-semibold text-mountain-800">{banner.title}</h3>
+                      <p className="text-sm text-mountain-600">{banner.subtitle}</p>
+                      <div className="mt-2 space-y-1">
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs text-gray-500">Order: {banner.order + 1}</span>
+                          <div className="flex items-center space-x-2">
+                            <span className="text-xs text-gray-500">#{index + 1}</span>
+                            {banner.image.includes('supabase.co') ? (
+                              <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded">Uploaded</span>
+                            ) : (
+                              <span className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded">Local</span>
+                            )}
+                          </div>
+                        </div>
+                        <div className="mt-2">
+                          <div className="flex items-center justify-between mb-1">
+                            <p className="text-xs text-gray-500">Storage URL:</p>
+                            <button
+                              onClick={() => handleCopyUrl(banner.image)}
+                              className="text-xs text-blue-600 hover:text-blue-800 transition-colors"
+                              title="Copy URL"
+                            >
+                              📋 Copy
+                            </button>
+                          </div>
+                          <div className="bg-gray-50 rounded p-2 text-xs font-mono text-gray-700 break-all">
+                            {banner.image}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
         </div>
       )}
 
@@ -1374,6 +1622,226 @@ const ProductManagement = () => {
                      className="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition-colors"
                    >
                      Update Category
+                   </button>
+                 </div>
+               </form>
+             </div>
+           </div>
+         </div>
+       )}
+
+       {/* Add Hero Banner Modal */}
+       {showHeroBanner && (
+         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+           <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+             <div className="p-6 border-b border-gray-200">
+               <div className="flex items-center justify-between">
+                 <h3 className="text-lg font-semibold text-mountain-800">Add Hero Banner</h3>
+                 <button
+                   onClick={() => setShowHeroBanner(false)}
+                   className="text-gray-400 hover:text-gray-600 transition-colors"
+                 >
+                   <X className="w-6 h-6" />
+                 </button>
+               </div>
+             </div>
+             <div className="p-6">
+               <form className="space-y-6" onSubmit={async (e) => {
+                 e.preventDefault()
+                 const formData = new FormData(e.target)
+                 const title = formData.get('title')
+                 const subtitle = formData.get('subtitle')
+                 const fileInput = e.target.querySelector('input[type="file"]')
+                 
+                 if (!fileInput || !fileInput.files || !fileInput.files[0]) {
+                   alert('Please select an image file')
+                   return
+                 }
+                 
+                 const file = fileInput.files[0]
+                 const result = await handleUploadHeroBanner(file, title, subtitle)
+                 
+                 if (result) {
+                   setShowHeroBanner(false)
+                   // Reset form
+                   e.target.reset()
+                 }
+               }}>
+                 <div>
+                   <label className="block text-sm font-medium text-mountain-700 mb-2">Banner Title</label>
+                   <input
+                     type="text"
+                     name="title"
+                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                     placeholder="e.g., Himalayan Spices"
+                     required
+                   />
+                 </div>
+                 <div>
+                   <label className="block text-sm font-medium text-mountain-700 mb-2">Banner Subtitle</label>
+                   <input
+                     type="text"
+                     name="subtitle"
+                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                     placeholder="e.g., Pure & Authentic"
+                     required
+                   />
+                 </div>
+                 <div>
+                   <label className="block text-sm font-medium text-mountain-700 mb-2">Banner Image</label>
+                   <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-gray-400 transition-colors">
+                     <input
+                       type="file"
+                       accept="image/*"
+                       className="hidden"
+                       id="hero-banner-upload"
+                       required
+                     />
+                     <label htmlFor="hero-banner-upload" className="cursor-pointer">
+                       <div className="text-gray-400 mb-2">
+                         <svg className="w-12 h-12 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                         </svg>
+                       </div>
+                       <p className="text-sm text-gray-600 mb-1">Click to upload or drag and drop</p>
+                       <p className="text-xs text-gray-500">PNG, JPG, GIF up to 10MB</p>
+                     </label>
+                   </div>
+                 </div>
+                 <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200">
+                   <button
+                     type="button"
+                     onClick={() => setShowHeroBanner(false)}
+                     className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
+                   >
+                     Cancel
+                   </button>
+                   <button
+                     type="submit"
+                     className="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition-colors"
+                   >
+                     Upload Banner
+                   </button>
+                 </div>
+               </form>
+             </div>
+           </div>
+         </div>
+       )}
+
+       {/* Edit Hero Banner Modal */}
+       {showEditHeroBanner && selectedHeroBanner && (
+         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+           <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+             <div className="p-6 border-b border-gray-200">
+               <div className="flex items-center justify-between">
+                 <h3 className="text-lg font-semibold text-mountain-800">Edit Hero Banner</h3>
+                 <button
+                   onClick={() => {
+                     setShowEditHeroBanner(false)
+                     setSelectedHeroBanner(null)
+                   }}
+                   className="text-gray-400 hover:text-gray-600 transition-colors"
+                 >
+                   <X className="w-6 h-6" />
+                 </button>
+               </div>
+             </div>
+             <div className="p-6">
+               <form className="space-y-6" onSubmit={async (e) => {
+                 e.preventDefault()
+                 const formData = new FormData(e.target)
+                 const title = formData.get('title')
+                 const subtitle = formData.get('subtitle')
+                 const fileInput = e.target.querySelector('input[type="file"]')
+                 
+                 const newImageFile = fileInput && fileInput.files && fileInput.files[0] ? fileInput.files[0] : null
+                 
+                 await handleUpdateHeroBanner(selectedHeroBanner.id, title, subtitle, newImageFile)
+               }}>
+                 <div>
+                   <label className="block text-sm font-medium text-mountain-700 mb-2">Banner Title</label>
+                   <input
+                     type="text"
+                     name="title"
+                     defaultValue={selectedHeroBanner.title}
+                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                     placeholder="e.g., Himalayan Spices"
+                     required
+                   />
+                 </div>
+                 <div>
+                   <label className="block text-sm font-medium text-mountain-700 mb-2">Banner Subtitle</label>
+                   <input
+                     type="text"
+                     name="subtitle"
+                     defaultValue={selectedHeroBanner.subtitle}
+                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                     placeholder="e.g., Pure & Authentic"
+                     required
+                   />
+                 </div>
+                 <div>
+                   <label className="block text-sm font-medium text-mountain-700 mb-2">Current Image</label>
+                   <div className="mb-4">
+                     <img
+                       src={selectedHeroBanner.image}
+                       alt={selectedHeroBanner.title}
+                       className="w-full h-32 object-cover rounded-lg border border-gray-200"
+                     />
+                   </div>
+                   <div className="mt-2">
+                     <div className="flex items-center justify-between mb-1">
+                       <label className="block text-sm font-medium text-mountain-700">Current Image URL:</label>
+                       <button
+                         onClick={() => handleCopyUrl(selectedHeroBanner.image)}
+                         className="text-xs text-blue-600 hover:text-blue-800 transition-colors"
+                         title="Copy URL"
+                       >
+                         📋 Copy
+                       </button>
+                     </div>
+                     <div className="bg-gray-50 rounded p-2 text-xs font-mono text-gray-700 break-all">
+                       {selectedHeroBanner.image}
+                     </div>
+                   </div>
+                 </div>
+                 <div>
+                   <label className="block text-sm font-medium text-mountain-700 mb-2">Update Image (Optional)</label>
+                   <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-gray-400 transition-colors">
+                     <input
+                       type="file"
+                       accept="image/*"
+                       className="hidden"
+                       id="edit-hero-banner-upload"
+                     />
+                     <label htmlFor="edit-hero-banner-upload" className="cursor-pointer">
+                       <div className="text-gray-400 mb-2">
+                         <svg className="w-12 h-12 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                         </svg>
+                       </div>
+                       <p className="text-sm text-gray-600 mb-1">Click to upload new image or drag and drop</p>
+                       <p className="text-xs text-gray-500">PNG, JPG, GIF up to 10MB</p>
+                     </label>
+                   </div>
+                 </div>
+                 <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200">
+                   <button
+                     type="button"
+                     onClick={() => {
+                       setShowEditHeroBanner(false)
+                       setSelectedHeroBanner(null)
+                     }}
+                     className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
+                   >
+                     Cancel
+                   </button>
+                   <button
+                     type="submit"
+                     className="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition-colors"
+                   >
+                     Update Banner
                    </button>
                  </div>
                </form>
