@@ -122,9 +122,9 @@ const Header = () => {
           </svg>
         </div>
         
-        <div className="flex items-center justify-center h-20 md:h-24 lg:h-28 relative">
-          {/* Navigation Container */}
-          <div className="flex items-center space-x-8 lg:space-x-12">
+                <div className="flex items-center justify-between h-20 md:h-24 lg:h-28 relative">
+          {/* Desktop Navigation Container - Centered */}
+          <div className="hidden lg:flex items-center justify-center space-x-8 lg:space-x-12 w-full">
             {/* Home */}
             <Link
               to="/"
@@ -167,7 +167,7 @@ const Header = () => {
               )}
             </Link>
 
-            {/* Center Logo - Iron Man Arc Reactor Style */}
+            {/* Center Logo - Desktop Version */}
             <div className="mx-8 lg:mx-12 mt-4">
               <Link to="/" className="group">
                 <motion.div
@@ -292,33 +292,49 @@ const Header = () => {
             </Link>
           </div>
 
-          {/* Mobile Logo (visible on small screens) */}
-          <Link to="/" className="lg:hidden flex items-center space-x-3 group">
-            <div className="w-10 h-10 bg-gradient-to-br from-gray-900 to-black rounded-full border border-yellow-400 flex items-center justify-center group-hover:scale-105 transition-transform duration-300">
-              <img
-                src="/logo.png"
-                alt="Himalayan Flavours Hub"
-                className="w-6 h-6 object-contain"
-                onError={(e) => {
-                  e.target.style.display = 'none';
-                  e.target.nextSibling.style.display = 'flex';
-                }}
-              />
-              <Mountain className="w-6 h-6 text-yellow-400" style={{ display: 'none' }} />
-            </div>
-            <div className="hidden sm:block">
-              <h1 className="font-display font-bold text-lg text-mountain-800">
-                Himalayan Flavours
-              </h1>
-              <p className="text-xs text-mountain-600 -mt-1">From Top of the World</p>
-            </div>
-          </Link>
+          {/* Mobile Layout - Centered Logo */}
+          <div className="lg:hidden absolute left-1/2 transform -translate-x-1/2">
+            <Link to="/" className="group">
+              <motion.div
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="relative"
+              >
+                {/* Mobile Iron Man Logo - Extra Large version */}
+                <div className="relative w-20 h-20 sm:w-24 sm:h-24 bg-gradient-to-br from-green-900 via-green-800 to-green-950 rounded-full border-2 border-green-400 shadow-lg flex items-center justify-center group-hover:border-green-300 transition-all duration-300 overflow-hidden">
+                  
+                  {/* Inner Energy Core */}
+                  <div className="absolute inset-3 bg-gradient-to-br from-green-400/20 to-emerald-500/20 rounded-full animate-pulse"></div>
+                  
+                  {/* Outer Ring Pattern */}
+                  <div className="absolute inset-1.5 rounded-full border border-green-400/50 animate-spin" style={{ animationDuration: '8s' }}></div>
+                  
+                  {/* Logo Image */}
+                  <div className="relative z-30 flex items-center justify-center">
+                    <img
+                      src="/logo.png"
+                      alt="Himalayan Flavours Hub"
+                      className="w-14 h-14 sm:w-18 sm:h-18 object-contain opacity-90 group-hover:opacity-100 transition-opacity duration-300 rounded-full"
+                      onError={(e) => {
+                        e.target.style.display = 'none';
+                        e.target.nextSibling.style.display = 'flex';
+                      }}
+                    />
+                    <Mountain className="w-14 h-14 sm:w-18 sm:h-18 text-green-300 opacity-90 group-hover:opacity-100 transition-opacity duration-300" style={{ display: 'none' }} />
+                  </div>
+                  
+                  {/* Subtle Pulsing Core */}
+                  <div className="absolute inset-3 bg-gradient-to-br from-green-400/10 to-emerald-500/10 rounded-full animate-ping"></div>
+                </div>
+              </motion.div>
+            </Link>
+          </div>
 
           {/* Right Side Actions */}
-          <div className="flex items-center space-x-4">
-            {/* Search Button */}
+          <div className="flex items-center space-x-2 sm:space-x-4 ml-auto">
+            {/* Search Button - Hidden on mobile */}
             <button
-              className={`p-3 rounded-xl transition-all duration-300 hover:scale-105 ${
+              className={`hidden sm:block p-3 rounded-xl transition-all duration-300 hover:scale-105 ${
                 effectiveScrolledState
                   ? 'text-gray-700 hover:text-primary-600 hover:bg-gray-50'
                   : 'text-white hover:text-yellow-300 hover:bg-white/10'
@@ -330,7 +346,7 @@ const Header = () => {
             {/* Cart Button */}
             <Link
               to="/cart"
-              className={`relative p-3 rounded-xl transition-all duration-300 hover:scale-105 ${
+              className={`relative p-2 sm:p-3 rounded-xl transition-all duration-300 hover:scale-105 touch-manipulation ${
                 effectiveScrolledState
                   ? 'text-gray-700 hover:text-primary-600 hover:bg-gray-50'
                   : 'text-white hover:text-yellow-300 hover:bg-white/10'
@@ -354,7 +370,7 @@ const Header = () => {
                 <div>
                   <button
                     onClick={() => setUserMenuOpen(!userMenuOpen)}
-                    className={`p-3 rounded-xl transition-all duration-300 hover:scale-105 ${
+                    className={`p-2 sm:p-3 rounded-xl transition-all duration-300 hover:scale-105 touch-manipulation ${
                       effectiveScrolledState
                         ? 'text-gray-700 hover:text-primary-600 hover:bg-gray-50'
                         : 'text-white hover:text-yellow-300 hover:bg-white/10'
@@ -419,13 +435,19 @@ const Header = () => {
             {/* Mobile Menu Button */}
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className={`lg:hidden p-3 rounded-xl transition-all duration-300 ${
+              className={`lg:hidden p-2 sm:p-3 rounded-xl transition-all duration-300 touch-manipulation active:scale-95 ${
                 effectiveScrolledState
                   ? 'text-gray-700 hover:text-primary-600 hover:bg-gray-50'
                   : 'text-white hover:text-yellow-300 hover:bg-white/10'
               }`}
+              aria-label={isMenuOpen ? 'Close menu' : 'Open menu'}
+            >
+              <motion.div
+                animate={{ rotate: isMenuOpen ? 180 : 0 }}
+                transition={{ duration: 0.3 }}
             >
               {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+              </motion.div>
             </button>
           </div>
         </div>
@@ -437,23 +459,87 @@ const Header = () => {
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
               exit={{ opacity: 0, height: 0 }}
-              className="lg:hidden border-t border-mountain-200 bg-white/95 backdrop-blur-md"
+              transition={{ duration: 0.3, ease: "easeInOut" }}
+              className="lg:hidden border-t border-mountain-200 bg-white/95 backdrop-blur-md shadow-lg"
             >
-              <nav className="py-4 space-y-2">
-                {navigation.map((item) => (
-                  <Link
+              <nav className="py-6 px-4 space-y-3">
+                {navigation.map((item, index) => (
+                  <motion.div
                     key={item.name}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: index * 0.1, duration: 0.3 }}
+                  >
+                                        <Link
                     to={item.href}
                     onClick={() => setIsMenuOpen(false)}
-                    className={`block px-4 py-2 rounded-lg transition-colors duration-200 ${
+                      className={`mobile-menu-item no-select px-6 py-4 rounded-xl mobile-transition text-lg font-medium ${
                       isActive(item.href)
-                        ? 'bg-primary-50 text-primary-600 font-medium'
-                        : 'text-mountain-700 hover:bg-mountain-50'
+                          ? 'bg-gradient-to-r from-primary-500 to-primary-600 text-white shadow-lg transform scale-105'
+                          : 'text-mountain-700 hover:bg-mountain-50 hover:text-primary-600 hover:shadow-md active:scale-95'
                     }`}
                   >
                     {item.name}
                   </Link>
+                  </motion.div>
                 ))}
+                
+                {/* Mobile User Actions */}
+                <motion.div
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: navigation.length * 0.1, duration: 0.3 }}
+                  className="pt-4 border-t border-mountain-200 mt-6"
+                >
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between px-6 py-4 space-y-3 sm:space-y-0">
+                    <div className="flex items-center space-x-4">
+                      <Link
+                        to="/cart"
+                        onClick={() => setIsMenuOpen(false)}
+                        className="mobile-menu-item no-select flex items-center space-x-2 text-mountain-700 hover:text-primary-600 mobile-transition active:scale-95"
+                      >
+                        <ShoppingCart className="w-5 h-5" />
+                        <span className="font-medium">Cart</span>
+                        {cartCount > 0 && (
+                          <span className="bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold">
+                            {cartCount}
+                          </span>
+                        )}
+                      </Link>
+                    </div>
+                    
+                    <div className="flex items-center space-x-4">
+                      <button
+                        className="mobile-menu-item no-select flex items-center space-x-2 text-mountain-700 hover:text-primary-600 mobile-transition active:scale-95"
+                      >
+                        <Search className="w-5 h-5" />
+                        <span className="font-medium">Search</span>
+                      </button>
+                      
+                      {user ? (
+                        <button
+                          onClick={() => {
+                            setUserMenuOpen(!userMenuOpen)
+                            setIsMenuOpen(false)
+                          }}
+                          className="mobile-menu-item no-select flex items-center space-x-2 text-mountain-700 hover:text-primary-600 mobile-transition active:scale-95"
+                        >
+                          <User className="w-5 h-5" />
+                          <span className="font-medium">Account</span>
+                        </button>
+                      ) : (
+                        <Link
+                          to="/auth"
+                          onClick={() => setIsMenuOpen(false)}
+                          className="mobile-menu-item no-select flex items-center space-x-2 text-mountain-700 hover:text-primary-600 mobile-transition active:scale-95"
+                        >
+                          <User className="w-5 h-5" />
+                          <span className="font-medium">Sign In</span>
+                        </Link>
+                      )}
+                    </div>
+                  </div>
+                </motion.div>
               </nav>
             </motion.div>
           )}

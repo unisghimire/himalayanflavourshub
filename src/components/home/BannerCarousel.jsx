@@ -79,69 +79,8 @@ const BannerCarousel = () => {
   }
 
   return (
-    <section className="relative h-[80vh] md:h-[70vh] overflow-hidden">
-      {/* Animated Connecting Wave from Header */}
-      <div className="absolute top-0 left-0 right-0 h-12 -mt-12 z-20">
-        <svg
-          viewBox="0 0 1200 50"
-          className="w-full h-full"
-          preserveAspectRatio="none"
-        >
-          {/* Main wave path with fill */}
-          <path
-            d="M0,25 Q150,5 300,25 T600,25 T900,25 T1200,25 L1200,50 L0,50 Z"
-            fill="rgba(255, 255, 255, 0.15)"
-            className="animate-pulse"
-            style={{ animationDuration: '3s' }}
-          />
-          
-          {/* Primary animated wave */}
-          <path
-            d="M0,25 Q150,5 300,25 T600,25 T900,25 T1200,25"
-            stroke="rgba(255, 255, 255, 0.6)"
-            strokeWidth="2.5"
-            fill="none"
-            className="animate-pulse"
-            style={{ 
-              animationDuration: '2s',
-              filter: 'drop-shadow(0 0 3px rgba(255,255,255,0.3))'
-            }}
-          />
-          
-          {/* Secondary wave with offset */}
-          <path
-            d="M0,25 Q150,45 300,25 T600,25 T900,25 T1200,25"
-            stroke="rgba(255, 255, 255, 0.3)"
-            strokeWidth="1.5"
-            fill="none"
-            className="animate-pulse"
-            style={{ 
-              animationDuration: '2.5s',
-              animationDelay: '0.3s'
-            }}
-          />
-          
-          {/* Third wave layer */}
-          <path
-            d="M0,25 Q150,10 300,25 T600,25 T900,25 T1200,25"
-            stroke="rgba(255, 255, 255, 0.2)"
-            strokeWidth="1"
-            fill="none"
-            className="animate-pulse"
-            style={{ 
-              animationDuration: '3.5s',
-              animationDelay: '0.7s'
-            }}
-          />
-          
-          {/* Floating particles */}
-          <circle cx="200" cy="15" r="1" fill="rgba(255,255,255,0.8)" className="animate-ping" style={{ animationDuration: '2s' }} />
-          <circle cx="400" cy="35" r="0.8" fill="rgba(255,255,255,0.6)" className="animate-ping" style={{ animationDuration: '2.5s', animationDelay: '0.5s' }} />
-          <circle cx="600" cy="10" r="1.2" fill="rgba(255,255,255,0.7)" className="animate-ping" style={{ animationDuration: '1.8s', animationDelay: '1s' }} />
-          <circle cx="800" cy="40" r="0.6" fill="rgba(255,255,255,0.5)" className="animate-ping" style={{ animationDuration: '3s', animationDelay: '0.2s' }} />
-          <circle cx="1000" cy="20" r="0.9" fill="rgba(255,255,255,0.6)" className="animate-ping" style={{ animationDuration: '2.2s', animationDelay: '0.8s' }} />
-        </svg>
-      </div>
+    <section className="relative min-h-[100vh] md:min-h-[90vh] lg:min-h-[80vh] overflow-hidden">
+
       <AnimatePresence mode="wait">
         <motion.div
           key={currentSlide}
@@ -149,17 +88,17 @@ const BannerCarousel = () => {
           animate={{ opacity: 1, x: 0 }}
           exit={{ opacity: 0, x: -300 }}
           transition={{ duration: 0.5, ease: "easeInOut" }}
-          className={`absolute inset-0 ${slides[currentSlide].backgroundColor} flex items-center`}
+          className={`absolute inset-0 ${slides[currentSlide].backgroundColor} flex items-start justify-center pt-2 md:pt-3 lg:pt-4`}
         >
-          <div className="max-w-7xl mx-auto px-4 md:px-8 w-full">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+          <div className="max-w-7xl mx-auto px-4 md:px-8 w-full pt-6 pb-16 md:pt-8 md:pb-20 lg:pt-12 lg:pb-24">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-10 lg:gap-12 items-start lg:items-center min-h-[60vh] md:min-h-[50vh] lg:min-h-[40vh]">
               {/* Left Content */}
-              <div className={`${slides[currentSlide].textColor} space-y-6`}>
+              <div className={`${slides[currentSlide].textColor} space-y-6 md:space-y-8`}>
                 <motion.h1
                   initial={{ opacity: 0, y: 30 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.6, delay: 0.2 }}
-                  className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight"
+                  className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold leading-tight"
                 >
                   {slides[currentSlide].title}
                 </motion.h1>
@@ -168,7 +107,7 @@ const BannerCarousel = () => {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.6, delay: 0.3 }}
-                  className="text-lg md:text-xl opacity-80 max-w-lg"
+                  className="text-base sm:text-lg md:text-xl opacity-80 max-w-lg"
                 >
                   {slides[currentSlide].subtitle}
                 </motion.p>
@@ -177,7 +116,7 @@ const BannerCarousel = () => {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.6, delay: 0.4 }}
-                  className="text-sm md:text-base opacity-70 max-w-md leading-relaxed"
+                  className="text-sm sm:text-base md:text-base opacity-70 max-w-md leading-relaxed"
                 >
                   {slides[currentSlide].description}
                 </motion.p>
@@ -190,7 +129,7 @@ const BannerCarousel = () => {
                   className="flex flex-wrap gap-4"
                 >
                   {slides[currentSlide].features.map((feature, index) => (
-                    <span key={index} className="bg-white/20 backdrop-blur-sm px-3 py-1 rounded-full text-xs font-medium">
+                    <span key={index} className="bg-white/20 backdrop-blur-sm px-3 py-1 rounded-full text-xs sm:text-sm font-medium">
                       {feature}
                     </span>
                   ))}
@@ -203,10 +142,10 @@ const BannerCarousel = () => {
                 >
                   <Link
                     to="/products"
-                    className={`inline-flex items-center space-x-2 ${slides[currentSlide].buttonBg} ${slides[currentSlide].buttonText} px-6 py-3 rounded-lg font-semibold hover:scale-105 transition-all duration-300 shadow-lg`}
+                    className={`inline-flex items-center space-x-2 ${slides[currentSlide].buttonBg} ${slides[currentSlide].buttonText} px-6 py-3 sm:px-8 sm:py-4 rounded-lg font-semibold hover:scale-105 transition-all duration-300 shadow-lg text-sm sm:text-base`}
                   >
                     <span>Shop Now</span>
-                    <ArrowRight className="w-5 h-5" />
+                    <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5" />
                   </Link>
                 </motion.div>
               </div>

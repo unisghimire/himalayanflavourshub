@@ -99,7 +99,7 @@ const HeroSection = () => {
   };
 
   return (
-    <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-primary-600 via-primary-500 to-earth-600 pt-20 md:pt-24 lg:pt-28">
+    <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-primary-600 via-primary-500 to-earth-600 pt-24 md:pt-28 lg:pt-32 pb-8 md:pb-12 lg:pb-16">
       {/* Background Pattern */}
       <div className="absolute inset-0 bg-hero-pattern opacity-10" />
       
@@ -145,10 +145,10 @@ const HeroSection = () => {
         />
       </div>
 
-             <div className="relative z-10 max-w-7xl mx-auto container-padding">
-                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-12 items-center">
+             <div className="relative z-10 max-w-7xl mx-auto container-padding py-8 md:py-12 lg:py-16">
+                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 md:gap-10 lg:gap-12 items-center">
            {/* Left Content - Image Carousel */}
-           <div className="text-center lg:text-left lg:col-span-2 lg:pt-8 order-2 lg:order-1">
+           <div className="text-center lg:text-left lg:col-span-2 lg:pt-8 order-2 lg:order-1 mb-8 md:mb-0">
              {/* Image Carousel Container */}
              <motion.div
                initial={{ opacity: 0, scale: 0.8 }}
@@ -274,9 +274,9 @@ const HeroSection = () => {
              initial={{ opacity: 0, x: 50 }}
              animate={{ opacity: 1, x: 0 }}
              transition={{ duration: 0.8, delay: 0.4 }}
-             className="lg:col-span-1 lg:ml-auto lg:mr-0 order-1 lg:order-2"
+             className="lg:col-span-1 lg:ml-auto lg:mr-0 order-1 lg:order-2 mt-4 md:mt-6 lg:mt-0"
            >
-             <div className="relative bg-gradient-to-br from-white/20 to-white/10 backdrop-blur-md rounded-2xl p-4 sm:p-6 border-2 border-white/30 shadow-2xl">
+             <div className="relative bg-gradient-to-br from-white/20 to-white/10 backdrop-blur-md rounded-2xl p-5 sm:p-6 md:p-7 border-2 border-white/30 shadow-2xl">
                {/* Glowing Border Effect */}
                <div className="absolute inset-0 bg-gradient-to-r from-yellow-400/20 via-orange-400/20 to-red-400/20 rounded-3xl blur-xl"></div>
                
@@ -285,7 +285,7 @@ const HeroSection = () => {
                  initial={{ opacity: 0, y: -20 }}
                  animate={{ opacity: 1, y: 0 }}
                  transition={{ duration: 0.8, delay: 0.6 }}
-                 className="relative text-center mb-6"
+                 className="relative text-center mb-6 md:mb-8"
                >
                  <motion.div
                    animate={{ 
@@ -307,7 +307,7 @@ const HeroSection = () => {
                  <div className="w-16 h-1 bg-gradient-to-r from-yellow-400 to-orange-400 rounded-full mx-auto"></div>
                </motion.div>
                
-               <div className="relative space-y-4">
+               <div className="relative space-y-4 md:space-y-5">
                  {loading ? (
                    // Loading skeleton
                    Array.from({ length: 3 }).map((_, index) => (
@@ -339,7 +339,7 @@ const HeroSection = () => {
                        y: -2,
                        boxShadow: "0 20px 40px rgba(0,0,0,0.3)"
                      }}
-                     className="relative bg-gradient-to-r from-white/25 to-white/15 backdrop-blur-sm rounded-xl p-3 sm:p-4 border border-white/40 hover:border-white/60 transition-all duration-300 cursor-pointer group overflow-hidden"
+                     className="relative bg-gradient-to-r from-white/25 to-white/15 backdrop-blur-sm rounded-xl p-4 sm:p-5 border border-white/40 hover:border-white/60 transition-all duration-300 cursor-pointer group overflow-hidden"
                    >
                      {/* Hover Glow Effect */}
                      <div className="absolute inset-0 bg-gradient-to-r from-yellow-400/10 to-orange-400/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
@@ -414,7 +414,7 @@ const HeroSection = () => {
                  initial={{ opacity: 0, y: 20 }}
                  animate={{ opacity: 1, y: 0 }}
                  transition={{ duration: 0.6, delay: 1.2 }}
-                 className="relative mt-6 sm:mt-8 text-center"
+                 className="relative mt-6 sm:mt-8 md:mt-10 text-center"
                >
                  <motion.button
                    whileHover={{ scale: 1.05 }}
@@ -450,68 +450,7 @@ const HeroSection = () => {
         </motion.div>
       </div>
 
-      {/* Animated Bottom Wave - Connecting to BannerCarousel */}
-      <div className="absolute bottom-0 left-0 right-0 h-12">
-        <svg
-          viewBox="0 0 1200 50"
-          className="w-full h-full"
-          preserveAspectRatio="none"
-        >
-          {/* Main wave path with fill */}
-          <path
-            d="M0,25 Q150,5 300,25 T600,25 T900,25 T1200,25 L1200,50 L0,50 Z"
-            fill="rgba(255, 255, 255, 0.15)"
-            className="animate-pulse"
-            style={{ animationDuration: '3s' }}
-          />
-          
-          {/* Primary animated wave */}
-          <path
-            d="M0,25 Q150,5 300,25 T600,25 T900,25 T1200,25"
-            stroke="rgba(255, 255, 255, 0.6)"
-            strokeWidth="2.5"
-            fill="none"
-            className="animate-pulse"
-            style={{ 
-              animationDuration: '2s',
-              filter: 'drop-shadow(0 0 3px rgba(255,255,255,0.3))'
-            }}
-          />
-          
-          {/* Secondary wave with offset */}
-          <path
-            d="M0,25 Q150,45 300,25 T600,25 T900,25 T1200,25"
-            stroke="rgba(255, 255, 255, 0.3)"
-            strokeWidth="1.5"
-            fill="none"
-            className="animate-pulse"
-            style={{ 
-              animationDuration: '2.5s',
-              animationDelay: '0.3s'
-            }}
-          />
-          
-          {/* Third wave layer */}
-          <path
-            d="M0,25 Q150,10 300,25 T600,25 T900,25 T1200,25"
-            stroke="rgba(255, 255, 255, 0.2)"
-            strokeWidth="1"
-            fill="none"
-            className="animate-pulse"
-            style={{ 
-              animationDuration: '3.5s',
-              animationDelay: '0.7s'
-            }}
-          />
-          
-          {/* Floating particles */}
-          <circle cx="200" cy="15" r="1" fill="rgba(255,255,255,0.8)" className="animate-ping" style={{ animationDuration: '2s' }} />
-          <circle cx="400" cy="35" r="0.8" fill="rgba(255,255,255,0.6)" className="animate-ping" style={{ animationDuration: '2.5s', animationDelay: '0.5s' }} />
-          <circle cx="600" cy="10" r="1.2" fill="rgba(255,255,255,0.7)" className="animate-ping" style={{ animationDuration: '1.8s', animationDelay: '1s' }} />
-          <circle cx="800" cy="40" r="0.6" fill="rgba(255,255,255,0.5)" className="animate-ping" style={{ animationDuration: '3s', animationDelay: '0.2s' }} />
-          <circle cx="1000" cy="20" r="0.9" fill="rgba(255,255,255,0.6)" className="animate-ping" style={{ animationDuration: '2.2s', animationDelay: '0.8s' }} />
-        </svg>
-      </div>
+
     </section>
   )
 }
