@@ -15,6 +15,7 @@ import {
   DollarSign,
   ShoppingBag,
   Star,
+  Package2,
   Calendar,
   Search,
   Filter,
@@ -35,6 +36,10 @@ import { useAuth } from '../context/AuthContext'
 import { categoryService, productService } from '../services/categoryService'
 import { storageService } from '../services/storageService'
 import { heroBannerService } from '../services/heroBannerService'
+import AccountingDashboard from '../components/admin/AccountingDashboard'
+import ExpenseManager from '../components/admin/ExpenseManager'
+import InventoryDashboard from '../components/admin/InventoryDashboard'
+import InventoryItemForm from '../components/admin/InventoryItemForm'
 
 // Product Management Component
 const ProductManagement = () => {
@@ -1843,7 +1848,13 @@ const AdminPage = () => {
   const { user, signInWithGoogle, signOut } = useAuth()
   const [activeTab, setActiveTab] = useState('dashboard')
   const [isLoading, setIsLoading] = useState(false)
+  const [selectedInventoryForExpense, setSelectedInventoryForExpense] = useState(null)
   const [searchTerm, setSearchTerm] = useState('')
+
+  const handleSwitchToAccounting = (inventoryItem) => {
+    setSelectedInventoryForExpense(inventoryItem)
+    setActiveTab('accounting')
+  }
   const [filterStatus, setFilterStatus] = useState('all')
 
   // Mock data for demonstration
@@ -2013,6 +2024,8 @@ const AdminPage = () => {
                 {[
                   { id: 'dashboard', label: 'Dashboard', icon: BarChart3 },
                   { id: 'products', label: 'Products', icon: Package },
+                  { id: 'inventory', label: 'Inventory', icon: Package2 },
+                  { id: 'accounting', label: 'Accounting', icon: DollarSign },
                   { id: 'orders', label: 'Orders', icon: ShoppingCart },
                   { id: 'customers', label: 'Customers', icon: Users },
                   { id: 'analytics', label: 'Analytics', icon: TrendingUp },
@@ -2081,6 +2094,14 @@ const AdminPage = () => {
                        <h3 className="font-semibold text-mountain-800 mb-2">Analytics</h3>
                        <p className="text-sm text-mountain-600">View business insights</p>
                      </div>
+                     
+                     <div className="bg-gradient-to-br from-emerald-50 to-teal-50 rounded-lg p-6 border border-emerald-200">
+                       <div className="w-12 h-12 bg-emerald-100 rounded-lg flex items-center justify-center mx-auto mb-4">
+                         <DollarSign className="w-6 h-6 text-emerald-600" />
+                       </div>
+                       <h3 className="font-semibold text-mountain-800 mb-2">Accounting</h3>
+                       <p className="text-sm text-mountain-600">Track expenses and profit</p>
+                     </div>
                    </div>
                    
                    <div className="mt-8 pt-8 border-t border-gray-200">
@@ -2094,6 +2115,17 @@ const AdminPage = () => {
 
              {activeTab === 'products' && (
                <ProductManagement />
+             )}
+
+             {activeTab === 'inventory' && (
+               <InventoryDashboard onSwitchToAccounting={handleSwitchToAccounting} />
+             )}
+
+             {activeTab === 'accounting' && (
+               <AccountingDashboard 
+                 selectedInventoryForExpense={selectedInventoryForExpense}
+                 onExpenseFormClosed={() => setSelectedInventoryForExpense(null)}
+               />
              )}
 
              {activeTab === 'orders' && (
