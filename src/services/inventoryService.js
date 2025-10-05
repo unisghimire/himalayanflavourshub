@@ -74,7 +74,7 @@ const inventoryService = {
   async getAllItems() {
     try {
       const { data, error } = await supabase
-        .from('inventory_stock_levels')
+        .from('inventory_items')
         .select('*')
         .order('name')
 
@@ -548,6 +548,54 @@ const inventoryService = {
       return data
     } catch (error) {
       console.error('Error searching inventory items:', error)
+      return []
+    }
+  },
+
+  // ==================== SIMPLIFIED DASHBOARD ====================
+  
+  // Get simplified dashboard data
+  async getSimplifiedDashboardData() {
+    try {
+      const { data, error } = await supabase
+        .rpc('get_simplified_dashboard_data')
+
+      if (error) throw error
+      return data[0] || {
+        total_items: 0,
+        low_stock_count: 0,
+        expiry_count: 0,
+        total_inventory_value: 0,
+        total_expenses: 0,
+        low_stock_items: [],
+        expiry_items: []
+      }
+    } catch (error) {
+      console.error('Error fetching simplified dashboard data:', error)
+      return {
+        total_items: 0,
+        low_stock_count: 0,
+        expiry_count: 0,
+        total_inventory_value: 0,
+        total_expenses: 0,
+        low_stock_items: [],
+        expiry_items: []
+      }
+    }
+  },
+
+  // Get unified inventory and expense data
+  async getUnifiedInventoryExpenses() {
+    try {
+      const { data, error } = await supabase
+        .from('unified_inventory_expenses')
+        .select('*')
+        .order('item_name')
+
+      if (error) throw error
+      return data || []
+    } catch (error) {
+      console.error('Error fetching unified inventory expenses:', error)
       return []
     }
   }

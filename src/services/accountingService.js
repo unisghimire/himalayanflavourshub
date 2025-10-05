@@ -59,6 +59,198 @@ export const accountingService = {
     }
   },
 
+  // ==================== BATCH CATEGORIES ====================
+  
+  // Get all batch categories
+  async getAllBatchCategories() {
+    try {
+      const { data, error } = await supabase
+        .from('batch_categories')
+        .select('*')
+        .eq('is_active', true)
+        .order('name', { ascending: true })
+
+      if (error) throw error
+      return data
+    } catch (error) {
+      console.error('Error fetching batch categories:', error)
+      return []
+    }
+  },
+
+  // ==================== PRODUCTS ====================
+  
+  // Get all products
+  async getAllProducts() {
+    try {
+      const { data, error } = await supabase
+        .from('products')
+        .select('*')
+        .eq('is_active', true)
+        .order('name', { ascending: true })
+
+      if (error) throw error
+      return data
+    } catch (error) {
+      console.error('Error fetching products:', error)
+      return []
+    }
+  },
+
+  // ==================== CUSTOMERS ====================
+  
+  // Get all customers
+  async getAllCustomers() {
+    try {
+      const { data, error } = await supabase
+        .from('customers')
+        .select('*')
+        .eq('is_active', true)
+        .order('name', { ascending: true })
+
+      if (error) throw error
+      return data
+    } catch (error) {
+      console.error('Error fetching customers:', error)
+      return []
+    }
+  },
+
+  // Create new customer
+  async createCustomer(customerData) {
+    try {
+      const { data, error } = await supabase
+        .from('customers')
+        .insert([customerData])
+        .select()
+
+      if (error) throw error
+      return data[0]
+    } catch (error) {
+      console.error('Error creating customer:', error)
+      throw error
+    }
+  },
+
+  // ==================== INCOME ====================
+  
+  // Get all income records
+  async getAllIncome(filters = {}) {
+    try {
+      let query = supabase
+        .from('income')
+        .select(`
+          *,
+          accounting_heads(name, type),
+          batches(batch_number, batch_name),
+          products(name, slug),
+          customers(name, email, phone)
+        `)
+        .order('income_date', { ascending: false })
+
+      // Apply filters
+      if (filters.dateFrom) {
+        query = query.gte('income_date', filters.dateFrom)
+      }
+      if (filters.dateTo) {
+        query = query.lte('income_date', filters.dateTo)
+      }
+      if (filters.isCredit !== undefined) {
+        query = query.eq('is_credit', filters.isCredit)
+      }
+      if (filters.customerId) {
+        query = query.eq('customer_id', filters.customerId)
+      }
+
+      const { data, error } = await query
+
+      if (error) throw error
+      return data
+    } catch (error) {
+      console.error('Error fetching income records:', error)
+      return []
+    }
+  },
+
+  // Create income record
+  async createIncome(incomeData) {
+    try {
+      const { data, error } = await supabase
+        .from('income')
+        .insert([incomeData])
+        .select()
+
+      if (error) throw error
+      return data[0]
+    } catch (error) {
+      console.error('Error creating income record:', error)
+      throw error
+    }
+  },
+
+  // Create multiple income records
+  async createMultipleIncome(incomeRecords) {
+    try {
+      const { data, error } = await supabase
+        .from('income')
+        .insert(incomeRecords)
+        .select()
+
+      if (error) throw error
+      return data
+    } catch (error) {
+      console.error('Error creating multiple income records:', error)
+      throw error
+    }
+  },
+
+  // Delete income record
+  async deleteIncome(incomeId) {
+    try {
+      const { error } = await supabase
+        .from('income')
+        .delete()
+        .eq('id', incomeId)
+
+      if (error) throw error
+      return true
+    } catch (error) {
+      console.error('Error deleting income record:', error)
+      throw error
+    }
+  },
+
+  // Update income record
+  async updateIncome(incomeId, updateData) {
+    try {
+      const { data, error } = await supabase
+        .from('income')
+        .update(updateData)
+        .eq('id', incomeId)
+        .select()
+
+      if (error) throw error
+      return data[0]
+    } catch (error) {
+      console.error('Error updating income record:', error)
+      throw error
+    }
+  },
+
+  // Generate auto-incremental batch number
+  async generateBatchNumber(categoryId) {
+    try {
+      const { data, error } = await supabase
+        .rpc('generate_batch_number', { category_id: categoryId })
+
+      if (error) throw error
+      return data
+    } catch (error) {
+      console.error('Error generating batch number:', error)
+      throw error
+    }
+  },
+
   // ==================== BATCHES ====================
   
   // Get all batches
@@ -68,13 +260,7 @@ export const accountingService = {
         .from('batches')
         .select(`
           *,
-          batch_products(
-            id,
-            quantity,
-            unit_cost,
-            total_cost,
-            products(name, slug)
-          )
+          batch_categories(name)
         `)
         .order('production_date', { ascending: false })
 
@@ -201,7 +387,6 @@ export const accountingService = {
         .select(`
           *,
           accounting_heads(name, type),
-          expense_categories(name),
           batches(batch_number, batch_name),
           products(name, slug)
         `)

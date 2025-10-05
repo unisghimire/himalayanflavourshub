@@ -30,16 +30,18 @@ import {
   Database,
   FileText,
   Bell,
-  X
+  X,
+  ChevronDown,
+  ChevronRight,
+  Tag,
+  Layers
 } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { categoryService, productService } from '../services/categoryService'
 import { storageService } from '../services/storageService'
 import { heroBannerService } from '../services/heroBannerService'
-import AccountingDashboard from '../components/admin/AccountingDashboard'
-import ExpenseManager from '../components/admin/ExpenseManager'
-import InventoryDashboard from '../components/admin/InventoryDashboard'
-import InventoryItemForm from '../components/admin/InventoryItemForm'
+import InventoryManagementDashboard from '../components/admin/InventoryManagementDashboard'
+import IncomeManagement from '../components/admin/IncomeManagement'
 
 // Product Management Component
 const ProductManagement = () => {
@@ -1847,14 +1849,10 @@ const ProductManagement = () => {
 const AdminPage = () => {
   const { user, signInWithGoogle, signOut } = useAuth()
   const [activeTab, setActiveTab] = useState('dashboard')
+  const [activeSubTab, setActiveSubTab] = useState('')
+  const [expandedMenus, setExpandedMenus] = useState({})
   const [isLoading, setIsLoading] = useState(false)
-  const [selectedInventoryForExpense, setSelectedInventoryForExpense] = useState(null)
   const [searchTerm, setSearchTerm] = useState('')
-
-  const handleSwitchToAccounting = (inventoryItem) => {
-    setSelectedInventoryForExpense(inventoryItem)
-    setActiveTab('accounting')
-  }
   const [filterStatus, setFilterStatus] = useState('all')
 
   // Mock data for demonstration
@@ -1873,6 +1871,28 @@ const AdminPage = () => {
     { id: 'ORD-004', customer: 'Sarah Wilson', total: 28.99, status: 'pending', date: '2024-01-12' },
     { id: 'ORD-005', customer: 'David Brown', total: 89.75, status: 'completed', date: '2024-01-11' }
   ])
+
+  // Toggle menu expansion
+  const toggleMenu = (menuId) => {
+    setExpandedMenus(prev => ({
+      ...prev,
+      [menuId]: !prev[menuId]
+    }))
+  }
+
+  // Handle menu item click
+  const handleMenuClick = (tabId, subTabId = null) => {
+    setActiveTab(tabId)
+    setActiveSubTab(subTabId || '')
+    
+    // Auto-expand inventory menu when clicking on it
+    if (tabId === 'inventory') {
+      setExpandedMenus(prev => ({
+        ...prev,
+        inventory: true
+      }))
+    }
+  }
 
   const [analytics] = useState({
     totalSales: 15420.50,
@@ -2024,25 +2044,64 @@ const AdminPage = () => {
                 {[
                   { id: 'dashboard', label: 'Dashboard', icon: BarChart3 },
                   { id: 'products', label: 'Products', icon: Package },
-                  { id: 'inventory', label: 'Inventory', icon: Package2 },
-                  { id: 'accounting', label: 'Accounting', icon: DollarSign },
+                  { id: 'income', label: 'Income', icon: DollarSign },
+                  { 
+                    id: 'inventory', 
+                    label: 'Inventory & Expenses', 
+                    icon: Package2,
+                    hasSubMenu: true,
+                    subMenus: [
+                      { id: 'add-inventory', label: 'Add Inventory', icon: Plus },
+                      { id: 'categories', label: 'Categories', icon: Tag },
+                      { id: 'batches', label: 'Batches', icon: Layers },
+                      { id: 'items', label: 'Items', icon: Package }
+                    ]
+                  },
                   { id: 'orders', label: 'Orders', icon: ShoppingCart },
                   { id: 'customers', label: 'Customers', icon: Users },
                   { id: 'analytics', label: 'Analytics', icon: TrendingUp },
                   { id: 'settings', label: 'Settings', icon: Settings }
                 ].map((tab) => (
-                  <button
-                    key={tab.id}
-                    onClick={() => setActiveTab(tab.id)}
-                    className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors duration-200 ${
-                      activeTab === tab.id
-                        ? 'bg-green-100 text-green-700 border border-green-200'
-                        : 'text-mountain-600 hover:bg-gray-50 hover:text-mountain-800'
-                    }`}
-                  >
-                    <tab.icon className="w-5 h-5" />
-                    <span className="font-medium">{tab.label}</span>
-                  </button>
+                  <div key={tab.id}>
+                    <button
+                      onClick={() => tab.hasSubMenu ? toggleMenu(tab.id) : handleMenuClick(tab.id)}
+                      className={`w-full flex items-center justify-between px-4 py-3 rounded-lg transition-colors duration-200 ${
+                        activeTab === tab.id
+                          ? 'bg-green-100 text-green-700 border border-green-200'
+                          : 'text-mountain-600 hover:bg-gray-50 hover:text-mountain-800'
+                      }`}
+                    >
+                      <div className="flex items-center space-x-3">
+                        <tab.icon className="w-5 h-5" />
+                        <span className="font-medium">{tab.label}</span>
+                      </div>
+                      {tab.hasSubMenu && (
+                        expandedMenus[tab.id] ? 
+                          <ChevronDown className="w-4 h-4" /> : 
+                          <ChevronRight className="w-4 h-4" />
+                      )}
+                    </button>
+                    
+                    {/* Sub-menu */}
+                    {tab.hasSubMenu && expandedMenus[tab.id] && (
+                      <div className="ml-4 mt-1 space-y-1">
+                        {tab.subMenus.map((subMenu) => (
+                          <button
+                            key={subMenu.id}
+                            onClick={() => handleMenuClick('inventory', subMenu.id)}
+                            className={`w-full flex items-center space-x-3 px-4 py-2 rounded-lg transition-colors duration-200 ${
+                              activeTab === 'inventory' && activeSubTab === subMenu.id
+                                ? 'bg-mountain-100 text-mountain-700 border border-mountain-200'
+                                : 'text-mountain-500 hover:bg-gray-50 hover:text-mountain-700'
+                            }`}
+                          >
+                            <subMenu.icon className="w-4 h-4" />
+                            <span className="text-sm font-medium">{subMenu.label}</span>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 ))}
               </div>
             </nav>
@@ -2117,15 +2176,12 @@ const AdminPage = () => {
                <ProductManagement />
              )}
 
-             {activeTab === 'inventory' && (
-               <InventoryDashboard onSwitchToAccounting={handleSwitchToAccounting} />
+             {activeTab === 'income' && (
+               <IncomeManagement />
              )}
 
-             {activeTab === 'accounting' && (
-               <AccountingDashboard 
-                 selectedInventoryForExpense={selectedInventoryForExpense}
-                 onExpenseFormClosed={() => setSelectedInventoryForExpense(null)}
-               />
+             {activeTab === 'inventory' && (
+               <InventoryManagementDashboard activeSubMenu={activeSubTab} />
              )}
 
              {activeTab === 'orders' && (
